@@ -2,9 +2,9 @@ from typing import List, Dict
 from evals.llm_client import LLMClient
 
 class PlayerSimulator:
-    def __init__(self, system_prompt: str, model: str = "gpt-4o"):
+    def __init__(self, system_prompt: str, model: str = "deepseek-chat"):
         self.system_prompt = system_prompt
-        self.client = LLMClient(provider="openai", model=model)
+        self.client = LLMClient(provider="deepseek", model=model)
         self.history: List[Dict[str, str]] = [
             {"role": "system", "content": system_prompt}
         ]

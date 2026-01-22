@@ -2,8 +2,8 @@ from typing import List, Dict, Any
 from evals.llm_client import LLMClient
 
 class LLMGrader:
-    def __init__(self, model: str = "gpt-4o"):
-        self.client = LLMClient(provider="openai", model=model)
+    def __init__(self, model: str = "deepseek-chat"):
+        self.client = LLMClient(provider="deepseek", model=model)
 
     def grade(self, transcript: List[Dict], rubric: str) -> Dict[str, Any]:
         """

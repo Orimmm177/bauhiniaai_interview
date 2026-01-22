@@ -1,24 +1,44 @@
 import os
-import json
 import random
 from typing import List, Dict, Optional
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 class LLMClient:
-    def __init__(self, provider: str = "mock", model: str = "mock-model"):
+    def __init__(self, provider: str = "deepseek", model: str = "deepseek-chat"):
         self.provider = provider
         self.model = model
+        self.api_key = os.getenv("DEEPSEEK_API_KEY")
+        self.base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+        
+        self.client = None
+        if self.api_key and self.provider != "mock":
+            try:
+                from openai import OpenAI
+                self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
+            except ImportError:
+                print("Warning: 'openai' package not installed. Falling back to mock.")
         
     def chat_completion(self, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
         """
         Get a completion from the LLM.
         messages: list of {"role": "system"|"user"|"assistant", "content": "..."}
         """
-        if self.provider == "mock":
+        if self.client:
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=temperature
+                )
+                return response.choices[0].message.content
+            except Exception as e:
+                print(f"Error calling LLM API: {e}. Falling back to mock.")
+                return self._mock_response(messages)
+        else:
             return self._mock_response(messages)
-        
-        # TODO: Add real provider implementations (OpenAI, Anthropic) here
-        # For the purpose of this assignment ensuring it runs locally without keys first
-        return self._mock_response(messages)
 
     def _mock_response(self, messages: List[Dict[str, str]]) -> str:
         last_msg = messages[-1]["content"]
