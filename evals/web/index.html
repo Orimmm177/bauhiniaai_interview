@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI NPC Evaluation Results</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts for better typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="data.js"></script>
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="logo">
+        <h1>对话类AI Agent评测面板</h1>
+      </div>
+      <div class="header-stats" id="header-stats">
+        <!-- Stats injected by JS -->
+      </div>
+    </header>
+
+    <main class="main-content">
+      <aside class="sidebar">
+        <div class="filter-section">
+          <h3>筛选条件</h3>
+          <div class="form-group">
+            <label for="scenario-filter">对话场景</label>
+            <select id="scenario-filter">
+              <option value="all">所有对话场景</option>
+              <!-- Options injected by JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="result-filter">评测结果</label>
+            <select id="result-filter">
+              <option value="all">所有评测结果</option>
+              <option value="pass">通过</option>
+              <option value="fail">失败</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="run-list-container">
+          <h3>评测记录</h3>
+          <div class="run-list" id="run-list">
+            <!-- List items injected by JS -->
+          </div>
+        </div>
+      </aside>
+
+      <section class="detail-view" id="detail-view">
+        <div class="empty-state">
+          <p>请选择评测记录查看详细信息</p>
+        </div>
+        <!-- Detail content injected by JS -->
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>

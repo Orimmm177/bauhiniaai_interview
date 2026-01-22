@@ -15,6 +15,7 @@
 - `evals/outputs`: 输出日志和报告
 - `evals/run_eval.py`: 主CLI入口
 - `evals/runner.py`: 核心游戏循环
+- `evals/web`: 可视化界面
 
 ## 3. 核心方法与实现
 
@@ -55,5 +56,21 @@ pip install -r requirements.txt
 python evals/run_eval.py
 ```
 
-查看生成的报告：
-`evals/report/report.md`
+### 4.1 查看生成的报告
+打开`evals/report/report.md`
+
+### 4.2 查看可视化界面
+
+```bash
+python evals/generate_viz_data.py
+```
+然后打开`evals/web/index.html`
+
+### 4.3 可视化界面展示
+![image](./evals/images/main_page.png)
+![image](./evals/images/report.png)
+![image](./evals/images/transcript.png)
+
+
+
+
