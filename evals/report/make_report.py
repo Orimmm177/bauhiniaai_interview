@@ -21,8 +21,8 @@ class ReportGenerator:
         md += f"**Total Runs**: {len(records)}\n\n"
         
         md += "## Summary\n\n"
-        md += "| Timestamp | Scenario | Result | Score |\n"
-        md += "|-----------|----------|--------|-------|\n"
+        md += "| Timestamp | Scenario | Result | Total Score |\n"
+        md += "|-----------|----------|--------|-------------|\n"
         
         for r in records:
             scenario = r.get('scenario', 'Unknown')
@@ -35,7 +35,13 @@ class ReportGenerator:
             
             for g in grades:
                 if g.get('metric') == 'rubric_eval':
-                    overall_score = g.get('score', '-')
+                    # New format: total_score
+                    if 'total_score' in g:
+                         overall_score = g.get('total_score', '-')
+                    # Old format: score
+                    elif 'score' in g:
+                         overall_score = g.get('score', '-')
+                         
                     if g.get('result') == 'FAIL':
                         overall_result = "FAIL"
             
@@ -47,14 +53,30 @@ class ReportGenerator:
             md += f"### Run: {r.get('scenario')} ({r.get('timestamp')})\n"
             
             # Grades
-            md += "#### Grades\n"
+            md += "#### Rubric Evaluation\n"
             for g in r.get('grades', []):
-                md += f"- **{g.get('metric')}**: {g.get('score', '-')} ({g.get('result', '-')})\n"
-                if 'reason' in g:
-                    md += f"  - Reason: {g['reason']}\n"
+                if g.get('metric') == 'rubric_eval':
+                    
+                    if 'scores' in g and isinstance(g['scores'], dict):
+                        # Detailed table for dimensions
+                        md += "| Dimension | Score | Evidence/Reasoning |\n"
+                        md += "|-----------|-------|--------------------|\n"
+                        scores = g.get('scores', {})
+                        reasoning = g.get('reasoning', {})
+                        
+                        for dim, score in scores.items():
+                            reason = reasoning.get(dim, "-")
+                            md += f"| {dim} | {score} | {reason} |\n"
+                        
+                        md += f"\n**Total Score**: {g.get('total_score', '-')}\n"
+                    else:
+                        # Fallback for old simple score
+                        md += f"- **Score**: {g.get('score', '-')} ({g.get('result', '-')})\n"
+                        if 'reason' in g:
+                            md += f"  - Reason: {g['reason']}\n"
             
             # Transcript
-            md += "#### Transcript\n"
+            md += "\n#### Transcript\n"
             md += "```\n"
             for line in r.get('transcript', []):
                 md += f"{line['speaker']}: {line['content']}\n"
