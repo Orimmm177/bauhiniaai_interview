@@ -7,15 +7,19 @@ from evals.agents.npc import NPCAgent
 from evals.agents.player_sim import PlayerSimulator
 
 class GameRunner:
-    def __init__(self, scenario_path: str, output_dir: str):
+    def __init__(self, scenario_path: str, output_dir: str, run_config: Dict[str, Any] = None):
         with open(scenario_path, 'r') as f:
             self.config = yaml.safe_load(f)
         self.output_dir = output_dir
+        self.run_config = run_config or {}
         self.transcript = []
         
     def run(self):
         scenario_id = self.config.get('scenario_id', 'unknown_scenario')
-        print(f"Starting scenario: {scenario_id}")
+        run_id = self.run_config.get('run_id', '0')
+        print(f"Starting scenario: {scenario_id} (Run {run_id})")
+        temperature = self.run_config.get('temperature', 0.7)
+        seed = self.run_config.get('seed', None)
         
         # Construct NPC System Prompt
         npc_profile = self.config.get('npc_profile', {})
@@ -77,7 +81,7 @@ class GameRunner:
                 # Manually inject into player history so it knows it said this
                 player.history.append({"role": "assistant", "content": player_msg})
             else:
-                player_msg = player.next_action(last_response)
+                player_msg = player.next_action(last_response, temperature=temperature, seed=seed)
             
             self.transcript.append({
                 "turn": turn,
@@ -87,7 +91,7 @@ class GameRunner:
             print(f"Player: {player_msg}")
             
             # NPC Turn
-            npc_response = npc.reply(player_msg)
+            npc_response = npc.reply(player_msg, temperature=temperature, seed=seed)
             self.transcript.append({
                 "turn": turn,
                 "speaker": "NPC",
@@ -118,12 +122,14 @@ class GameRunner:
         os.makedirs(self.output_dir, exist_ok=True)
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         scenario_id = self.config.get('scenario_id', 'unknown')
-        filename = f"{scenario_id}_{timestamp}.json"
+        run_id = self.run_config.get('run_id', '0')
+        filename = f"{scenario_id}_run{run_id}_{timestamp}.json"
         filepath = os.path.join(self.output_dir, filename)
         
         result = {
             "scenario": scenario_id,
             "config": self.config,
+            "run_config": self.run_config,
             "transcript": self.transcript,
             "grades": grades,
             "timestamp": timestamp

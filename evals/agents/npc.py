@@ -10,10 +10,10 @@ class NPCAgent:
             {"role": "system", "content": system_prompt}
         ]
 
-    def reply(self, user_message: str) -> str:
+    def reply(self, user_message: str, temperature: float = 0.7, seed: int = None) -> str:
         self.history.append({"role": "user", "content": user_message})
         
-        response = self.client.chat_completion(self.history)
+        response = self.client.chat_completion(self.history, temperature=temperature, seed=seed)
         
         self.history.append({"role": "assistant", "content": response})
         return response

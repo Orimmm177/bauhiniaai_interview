@@ -9,7 +9,7 @@ class PlayerSimulator:
             {"role": "system", "content": system_prompt}
         ]
 
-    def next_action(self, npc_response: str = None) -> str:
+    def next_action(self, npc_response: str = None, temperature: float = 0.7, seed: int = None) -> str:
         """
         Generate the next message to send to the NPC.
         If npc_response is None, it's the start of the conversation.
@@ -20,7 +20,7 @@ class PlayerSimulator:
         # Append instructions for the thought process if it's not the very first system prompt
         # (Though ideally this should be in the system prompt. Let's rely on the system prompt having these instructions now.)
         
-        response = self.client.chat_completion(self.history)
+        response = self.client.chat_completion(self.history, temperature=temperature, seed=seed)
         self.history.append({"role": "assistant", "content": response})
         
         # Parse the response to extract [ACTION]

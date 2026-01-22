@@ -27,9 +27,25 @@ def main():
     print(f"Found {len(scenario_files)} scenarios.")
     
     # Execution
+    # Execution
+    K = 5  # Number of trials
+    import random
+    
     for s_file in scenario_files:
-        runner = GameRunner(s_file, args.output)
-        runner.run()
+        for i in range(K):
+            # Randomize temperature between 0.7 and 1.0 (or whatever range)
+            temperature = 0.7 + (random.random() * 0.3)
+            # Random seed
+            seed = random.randint(0, 10000)
+            
+            run_config = {
+                "run_id": i + 1,
+                "temperature": temperature,
+                "seed": seed
+            }
+            
+            runner = GameRunner(s_file, args.output, run_config=run_config)
+            runner.run()
         
     # Reporting
     print("Generating report...")

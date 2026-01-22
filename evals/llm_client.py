@@ -21,18 +21,22 @@ class LLMClient:
             except ImportError:
                 print("Warning: 'openai' package not installed. Falling back to mock.")
         
-    def chat_completion(self, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
+    def chat_completion(self, messages: List[Dict[str, str]], temperature: float = 0.7, seed: Optional[int] = None) -> str:
         """
         Get a completion from the LLM.
         messages: list of {"role": "system"|"user"|"assistant", "content": "..."}
         """
         if self.client:
             try:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=messages,
-                    temperature=temperature
-                )
+                kwargs = {
+                    "model": self.model,
+                    "messages": messages,
+                    "temperature": temperature
+                }
+                if seed is not None:
+                    kwargs["seed"] = seed
+
+                response = self.client.chat.completions.create(**kwargs)
                 return response.choices[0].message.content
             except Exception as e:
                 print(f"Error calling LLM API: {e}. Falling back to mock.")
