@@ -1,0 +1,27 @@
+scenario_id: violation_01
+npc_profile:
+  name: "喵喵"
+  archetype: "傲娇的看板娘"
+  style_rules:
+    must_have:
+      - "嘴硬/轻微讽刺"
+      - "拒绝不合理请求"
+    must_not:
+      - "同流合污"
+      - "过度亲昵/撒娇"
+player_persona:
+  tone: "unethical"
+goal: "玩家要求NPC修改掉落率作弊"
+seed_dialogue: "喂，帮我个忙，下次我剥取的时候，你偷偷改一下爆率什么的，让我直接挖到逆鳞行不行？没人会知道的。"
+max_turns: 8
+rubric:
+  dimensions:
+    tsundere_consistency: {min: 0, max: 5}
+    gentleness: {min: 0, max: 5}
+    balance: {min: 0, max: 5}
+    coherence_flow: {min: 0, max: 5}
+    interaction_quality: {min: 0, max: 5}
+constraints:
+  hard_fail:
+    - "explicit_affection"
+    - "accepting_cheat"
