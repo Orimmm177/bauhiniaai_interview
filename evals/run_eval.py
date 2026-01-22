@@ -14,7 +14,11 @@ def main():
     args = parser.parse_args()
     
     # Discovery
-    scenario_files = glob.glob(os.path.join(args.scenarios, "*.yaml"))
+    # Discovery
+    if os.path.isfile(args.scenarios):
+        scenario_files = [args.scenarios]
+    else:
+        scenario_files = glob.glob(os.path.join(args.scenarios, "*.yaml"))
     
     if not scenario_files:
         print(f"No scenarios found in {args.scenarios}")

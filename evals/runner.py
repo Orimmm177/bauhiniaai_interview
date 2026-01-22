@@ -14,27 +14,71 @@ class GameRunner:
         self.transcript = []
         
     def run(self):
-        print(f"Starting scenario: {self.config['name']}")
+        scenario_id = self.config.get('scenario_id', 'unknown_scenario')
+        print(f"Starting scenario: {scenario_id}")
+        
+        # Construct NPC System Prompt
+        npc_profile = self.config.get('npc_profile', {})
+        style_rules = npc_profile.get('style_rules', {})
+        must_have = style_rules.get('must_have', [])
+        must_not = style_rules.get('must_not', [])
+        constraints = self.config.get('constraints', {}).get('hard_fail', [])
+        
+        npc_system_prompt = (
+            f"You are {npc_profile.get('name', 'NPC')}, a {npc_profile.get('archetype', 'character')}.\n"
+            f"Style Rules:\n"
+            f"- Must have: {', '.join(must_have)}\n"
+            f"- Must not: {', '.join(must_not)}\n"
+            f"Constraints: {', '.join(constraints)}\n"
+            f"You are interacting with a Hunter (Player)."
+        )
         
         npc = NPCAgent(
-            name=self.config['npc']['name'],
-            system_prompt=self.config['npc']['system_prompt']
+            name=npc_profile.get('name', 'NPC'),
+            system_prompt=npc_system_prompt
+        )
+        
+        # Construct Player Simulator System Prompt
+        player_persona = self.config.get('player_persona', {})
+        goal = self.config.get('goal', '')
+        seed_dialogue = self.config.get('seed_dialogue', '')
+        
+        traits = player_persona.get('traits', [])
+        traits_str = f"Traits: {', '.join(traits)}\n" if traits else ""
+        
+        player_system_prompt = (
+            f"You are a Monster Hunter player.\n"
+            f"Tone: {player_persona.get('tone', 'neutral')}\n"
+            f"{traits_str}"
+            f"Goal: {goal}\n"
+            f"Your first line was: \"{seed_dialogue}\"\n"
+            f"IMPORTANT: You must think before you speak. Use the following format for every response:\n"
+            f"[THOUGHTS]\n"
+            f"Your internal monologue, strategy, and reaction to the NPC.\n"
+            f"[/THOUGHTS]\n"
+            f"[ACTION]\n"
+            f"Your actual spoken dialogue to the NPC."
         )
         
         player = PlayerSimulator(
-            system_prompt=self.config['player']['system_prompt']
+            system_prompt=player_system_prompt
         )
         
-        max_turns = self.config.get('max_turns', 5)
+        max_turns = self.config.get('max_turns', 8)
         
-        # Initial trigger to start the conversation
-        # Usually player starts, or NPC starts. Let's assume Player approaches NPC.
         last_response = None
         
         for turn in range(max_turns):
-            # Player turn
             print(f"--- Turn {turn+1} ---")
-            player_msg = player.next_action(last_response)
+            
+            # Handle Player Turn
+            if turn == 0 and seed_dialogue:
+                player_msg = seed_dialogue
+                # Manually inject into player history so it knows it said this
+                player.history.append({"role": "assistant", "content": player_msg})
+            else:
+                player_msg = player.next_action(last_response)
+            
             self.transcript.append({
                 "turn": turn,
                 "speaker": "Player",
@@ -42,7 +86,7 @@ class GameRunner:
             })
             print(f"Player: {player_msg}")
             
-            # NPC turn
+            # NPC Turn
             npc_response = npc.reply(player_msg)
             self.transcript.append({
                 "turn": turn,
@@ -62,29 +106,31 @@ class GameRunner:
         grades.append(RuleGrader.check_max_length(self.transcript))
         
         # LLM-based
-        if 'evaluation' in self.config and 'rubric' in self.config['evaluation']:
+        # New schema has 'rubric' at top level
+        if 'rubric' in self.config:
             from evals.graders.rubric_llm import LLMGrader
             llm_grader = LLMGrader()
-            grades.append(llm_grader.grade(self.transcript, self.config['evaluation']['rubric']))
+            grades.append(llm_grader.grade(self.transcript, self.config['rubric']))
             
         self._save_results(grades)
         
     def _save_results(self, grades: List[Dict]):
         os.makedirs(self.output_dir, exist_ok=True)
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        filename = f"{self.config['name']}_{timestamp}.json"
+        scenario_id = self.config.get('scenario_id', 'unknown')
+        filename = f"{scenario_id}_{timestamp}.json"
         filepath = os.path.join(self.output_dir, filename)
         
         result = {
-            "scenario": self.config['name'],
+            "scenario": scenario_id,
             "config": self.config,
             "transcript": self.transcript,
             "grades": grades,
             "timestamp": timestamp
         }
         
-        with open(filepath, 'w') as f:
-            json.dump(result, f, indent=2)
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(result, f, indent=2, ensure_ascii=False)
             
         print(f"Run finished. Results saved to {filepath}")
 
